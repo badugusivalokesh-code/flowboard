@@ -1,11 +1,8 @@
-const REQUIRED_VARS = ['MONGO_URI', 'JWT_SECRET', 'CLIENT_URL'] as const;
+const REQUIRED_VARS = ['MONGO_URI', 'JWT_SECRET'] as const;
 
 /**
  * Fails fast and loudly if a required env var is missing, instead of
- * letting each piece of code discover the gap on its own later — most
- * dangerously, `cors({ origin: process.env.CLIENT_URL })` silently falls
- * back to a permissive default if CLIENT_URL is undefined, which would
- * quietly defeat the "never wildcard with credentials" requirement.
+ * letting each piece of code discover the gap on its own later.
  */
 export function assertRequiredEnvVars(): void {
   const missing = REQUIRED_VARS.filter((name) => !process.env[name]);

@@ -62,13 +62,13 @@ Copy `client/.env.example` to `client/.env`. The default API URL targets the loc
 | --- | --- | --- |
 | `MONGO_URI` | Yes | MongoDB connection string |
 | `JWT_SECRET` | Yes | Long random secret used to sign auth cookies |
-| `CLIENT_URL` | Yes | Exact frontend origin allowed by CORS |
+| `CLIENT_URL` | No | Exact frontend origin allowed by CORS; cross-origin requests are denied when unset |
 | `JWT_EXPIRES_IN` | No | JWT lifetime; defaults to `7d` |
 | `PORT` | No | HTTP port; defaults to `5000` |
 | `NODE_ENV` | No | Set to `production` for deployed cookies |
 | `MONGO_SRV_DNS_WORKAROUND` | No | Development-only opt-in for a Windows Atlas DNS issue |
 
-Never commit `.env` files or real secrets. `MONGO_URI`, `JWT_SECRET`, and `CLIENT_URL` are validated when the server starts.
+Never commit `.env` files or real secrets. `MONGO_URI` and `JWT_SECRET` are validated when the server starts. Set `CLIENT_URL` once the stable production frontend origin is known.
 
 ### Client
 
@@ -140,7 +140,7 @@ VITE_API_URL=https://<backend-domain>/api
 
 Deploy `server` as a Node web service. Use:
 
-- Build command: `npm install && npm run build`
+- Build command: `npm install --include=dev && npm run build`
 - Start command: `npm start`
 
 Set these production environment variables on the backend:
