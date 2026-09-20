@@ -475,10 +475,20 @@ body {
 
 /* Smoothly cross-fade the full theme surface when the browser supports
    the View Transitions API. The reduced-motion rule below overrides this. */
+html {
+  view-transition-name: root;
+}
+
+::view-transition-group(root) {
+  animation-duration: 450ms;
+  animation-timing-function: ease-in-out;
+}
+
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  animation-duration: 280ms;
+  animation-duration: 450ms;
   animation-timing-function: ease-in-out;
+  mix-blend-mode: normal;
 }
 
 ::view-transition-old(root) {
