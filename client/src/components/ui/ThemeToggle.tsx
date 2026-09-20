@@ -11,13 +11,13 @@ export function ThemeToggle() {
       aria-checked={isDark}
       aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
       onClick={toggleTheme}
-      className="relative flex h-9 w-16 items-center rounded-full border border-border-glass-secondary bg-bg-secondary px-1 backdrop-blur-glass transition-colors duration-150 hover:border-border-glass active:scale-95"
+      className="relative flex h-9 w-16 items-center rounded-full border border-border-glass-secondary bg-bg-secondary px-1 backdrop-blur-glass transition-colors duration-300 ease-in-out hover:border-border-glass active:scale-95"
     >
       <span
         // Intentionally raw white, like Button's primary/danger text above —
         // the knob needs to read against the track in both themes, not
         // follow it.
-        className={`flex h-7 w-7 items-center justify-center rounded-full bg-white text-body-md shadow-card transition-transform duration-150 ${
+        className={`flex h-7 w-7 items-center justify-center rounded-full bg-white text-body-md shadow-card transition-transform duration-300 ease-in-out ${
           isDark ? 'translate-x-7' : 'translate-x-0'
         }`}
         aria-hidden="true"
