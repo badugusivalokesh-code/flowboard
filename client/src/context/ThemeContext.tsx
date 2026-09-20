@@ -27,10 +27,26 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     window.localStorage.setItem(STORAGE_KEY, theme);
   }, [theme]);
 
-  const setTheme = useCallback((next: Theme) => setThemeState(next), []);
-  const toggleTheme = useCallback(() => {
-    setThemeState((prev) => (prev === 'light' ? 'dark' : 'light'));
+  const updateTheme = useCallback((updater: Theme | ((prev: Theme) => Theme)) => {
+    const apply = () => {
+      setThemeState(updater);
+    };
+
+    // Cross-fade the complete page when the browser supports View Transitions,
+    // while retaining the normal React state update as the fallback.
+    if ('startViewTransition' in document) {
+      (document as Document & {
+        startViewTransition?: (callback: () => void) => unknown;
+      }).startViewTransition?.(apply);
+      return;
+    }
+    apply();
   }, []);
+
+  const setTheme = useCallback((next: Theme) => updateTheme(next), [updateTheme]);
+  const toggleTheme = useCallback(() => {
+    updateTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
+  }, [updateTheme]);
 
   const value = useMemo(() => ({ theme, toggleTheme, setTheme }), [theme, toggleTheme, setTheme]);
 
