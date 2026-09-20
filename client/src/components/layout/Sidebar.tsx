@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useLocation, NavLink } from 'react-router-dom';
 import { LayoutGrid, LineChart, PieChart, List, CalendarClock, FolderKanban, X } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
+import { scrollToSection } from '@/utils/scrollToSection';
 
 /** Shared active-state styling: a solid brand-gradient pill with white text,
  * matching the reference's active nav treatment (previously a faint tinted
@@ -103,6 +104,11 @@ export function Sidebar({ onNavigate, collapsed = false }: SidebarProps) {
     activateTemporarily(id);
 
     if (onDashboard) {
+      // Scroll immediately even when the URL already has this hash. A hash-only
+      // navigate is a no-op in that case, which made the first click appear
+      // broken when the dashboard observer had already written the same hash.
+      observerHashUpdateRef.current = true;
+      scrollToSection(id);
       navigate({ pathname: location.pathname, hash: `#${id}` });
     } else {
       navigate(`/dashboard#${id}`);
