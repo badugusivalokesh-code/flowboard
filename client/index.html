@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#6531F7" />
+    <title>FlowBoard — Analytics Dashboard</title>
+    <script>
+      // Set the correct theme before first paint, synchronously, so a stored
+      // "dark" preference (or system preference) never flashes light first.
+      // ThemeContext (src/context/ThemeContext.tsx) owns this same logic for
+      // all subsequent toggles/persistence — this is only the pre-mount case.
+      (function () {
+        try {
+          var stored = localStorage.getItem('pulseboard-theme');
+          var theme =
+            stored === 'light' || stored === 'dark'
+              ? stored
+              : window.matchMedia('(prefers-color-scheme: dark)').matches
+                ? 'dark'
+                : 'light';
+          document.documentElement.setAttribute('data-theme', theme);
+        } catch (e) {
+          /* localStorage unavailable (e.g. privacy mode) — default light stays */
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

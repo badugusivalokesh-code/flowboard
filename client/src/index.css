@@ -1,0 +1,484 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==========================================================================
+  FlowBoard design tokens
+   Source: "Glass SaaS Dashboard" Figma kit (Primitive-colors / Semantic-colors
+   / Effect Styles / Text Styles / Corner exports). The Figma file only ships
+   one mode ("Mode 1", light). The [data-theme="dark"] block below is an
+   original extension that reuses the same semantic token *names* so every
+   component written against var(--background-primary) etc. works in both
+   themes without changes — the dark values themselves were authored for
+   this build, not lifted from the kit.
+   ========================================================================== */
+
+:root,
+[data-theme='light'] {
+  /* primitives */
+  --base-white: #ffffff;
+  --base-black: #000000;
+  --purple-100: #ab6bff;
+  --purple-200: #6531f7;
+  /* Added for the reference-matched reskin: the brief's reference art pairs
+     purple with an electric cyan (logo mark, ambient glow, chart accents).
+     Kept as its own primitive pair (not a purple-100/200 rename) since blue
+     tones weren't part of the original Figma kit's palette at all. */
+  --cyan-100: #67e8f9;
+  --cyan-200: #22d3ee;
+  --blue-accent: #3b82f6;
+  /* Verified-safe intermediate purple — NOT purple-100. White text/icons at
+     normal weight need >=4.5:1; measured white-on-purple-100 at only
+     3.34:1 (fails), white-on-cyan-200 at 1.81:1 (fails badly). This shade
+     clears 4.95:1, purple-200 itself clears 6.30:1 — so a gradient built
+     from these two (see --gradient-brand-mono) stays safe at every point,
+     not just at its endpoints. */
+  --purple-150: #8148fa;
+  --gradient-brand: linear-gradient(135deg, var(--purple-100) 0%, var(--purple-200) 55%, var(--cyan-200) 100%);
+  /* Purple-only (not tri-color): this backs surfaces with real white TEXT
+     on top (buttons, avatar initials, the active-nav pill) rather than
+     icon-only surfaces, so every stop has to independently clear white-text
+     AA contrast — --gradient-brand above can't be reused here since its
+     cyan-200 endpoint badly fails that (1.81:1). */
+  --gradient-brand-mono: linear-gradient(135deg, var(--purple-150), var(--purple-200));
+  /* Darkened cyan for use as an ICON/text color specifically — raw cyan-200
+     measures only 1.62:1 against its own light-mode tint chip (fails even
+     the lenient 3:1 non-text/icon threshold badly). This clears 4.41:1
+     there. Dark mode doesn't need this: raw cyan-200 already reads fine
+     against a dark chip (see --foreground-cyan in the dark block). */
+  --cyan-300: #0e7490;
+  --system-green: #34c759;
+  --system-red: #ff3b30;
+  --system-red-6: rgba(255, 59, 48, 0.06);
+  --system-yellow: #ffd967;
+  --system-orange: #ff865e;
+
+  /* semantic: backgrounds */
+  /* Deepened from the original (which had a long near-white plateau) so
+     more color shows through translucent cards — corner value computed and
+     verified (not guessed) to keep every text color on it at >=4.5:1 even
+     at the gradient's most saturated point. See Phase 9 note: the first
+     attempt at this was too aggressive and broke contrast; this is the
+     corrected, re-verified version. */
+  --background-canvas: radial-gradient(125% 105% at 12% -8%, #dbe9fd 0%, #eaf0fb 30%, #f0e6fd 55%, #ddc9ff 80%, #d2bbff 100%);
+  --background-primary: #ffffff;
+  --background-secondary: rgba(255, 255, 255, 0.46);
+  --background-tertiary: rgba(255, 255, 255, 0.16);
+  --background-quaternary: rgba(0, 0, 0, 0.06);
+  --background-disabled: rgba(0, 0, 0, 0.24);
+  --background-interactive-primary-default: var(--purple-200);
+  --background-interactive-primary-hover: var(--purple-100);
+  --background-interactive-primary-press: var(--purple-100);
+  --background-interactive-secondary-default: rgba(255, 255, 255, 0.24);
+  --background-interactive-secondary-hover: rgba(255, 255, 255, 0.44);
+  --background-tips-informative: rgba(101, 49, 247, 0.06);
+  --background-tips-danger: var(--system-red-6);
+
+  /* semantic: foregrounds */
+  --foreground-primary: #000000;
+  --foreground-secondary: rgba(0, 0, 0, 0.56); /* bumped from the kit's raw 44% opacity token —
+    measured 3.23:1 on white, fails WCAG AA (4.5:1) for real body/label text. 56% clears 4.5:1
+    with margin. See Phase 2 report for the full contrast audit. */
+  --foreground-tertiary: rgba(0, 0, 0, 0.24); /* kept at the kit's original value — reserved for
+    decorative/icon use only (never real text), where AA text-contrast doesn't apply */
+  --foreground-quaternary: rgba(0, 0, 0, 0.06);
+  --foreground-interactive-default: rgba(0, 0, 0, 0.56); /* bumped in step with foreground-secondary
+    above, for the same reason — this will carry real (unselected nav item) text in Phase 3 */
+  --foreground-interactive-hover: #000000;
+  --foreground-inverse-primary: #ffffff;
+
+  /* accessible text/icon colors for status states — darker than the raw system
+     hue because the raw hue fails AA as text on light backgrounds (measured
+     ~2-3.5:1). Raw system-red/system-green stay available unchanged for
+     non-text uses (chart fills, dots) where AA text contrast doesn't apply.
+     Re-verified in Phase 9 against the ACTUAL composited card surface
+     (background-secondary over the canvas gradient's most saturated point)
+     rather than just plain white — darkened further from the Phase 2
+     values, which had a latent gap only caught by this more rigorous test. */
+  --foreground-danger: #b82a23; /* verified >=4.68:1 on white, its tint chip, and the real card surface */
+  --foreground-success: #1d6f32; /* verified >=4.71:1 on white, its tint chip, and the real card surface */
+  --foreground-attention: #a3563c; /* raw system-orange (#FF865E) measured 2.09:1 as text on a quaternary
+    chip — fails badly. This darkened shade clears 4.66:1 on the same chip and 5.31:1 on white. */
+  --foreground-brand: var(--purple-200); /* raw purple-200 already passes as text in light mode (6.30:1
+    on white) — no change needed here, only in dark (see dark block) */
+  --background-danger-solid: #b82a23; /* consolidated with foreground-danger above — white text on
+    this verified 6.19:1 */
+  --background-success-solid: #1d6f32; /* consolidated with foreground-success above — white text on
+    this verified 6.23:1 */
+  --background-danger-tint: rgba(255, 59, 48, 0.12);
+  --background-success-tint: rgba(52, 199, 89, 0.14);
+  /* Icon-chip tokens for StatCardsRow (Total Projects / In Progress) —
+     promoted from raw inline rgba()/hex literals found during the theme
+     task's contrast audit: those literals put a bright icon directly on a
+     barely-tinted near-white chip, measuring 1.62:1 (cyan) and 3.06:1
+     (blue) — the cyan case badly fails even the lenient 3:1 icon/graphic
+     threshold. Tinting with the same darkened color used for the icon
+     (rather than the raw bright primitive) fixes both and keeps the token
+     system as the single source of truth instead of scattering colors
+     through components. */
+  --background-info-tint: rgba(29, 78, 216, 0.14);
+  --foreground-info: #1d4ed8; /* verified 5.38:1 against its own tint chip */
+  --background-cyan-tint: rgba(14, 116, 144, 0.14);
+  --foreground-cyan: var(--cyan-300); /* verified 4.41:1 against its own tint chip */
+
+  /* semantic: borders */
+  --border-bounds: rgba(255, 255, 255, 0.44);
+  --border-glass-primary: rgba(255, 255, 255, 0.9);
+  --border-glass-secondary: rgba(255, 255, 255, 0.6);
+
+  /* Global focus-ring color — theme-aware, not the same raw purple-200 in
+     both themes: that measured only 2.67:1 against a typical dark card
+     (below the ~3:1 focus indicators should clear), while working fine in
+     light mode (5.4:1). Dark mode reuses the already-lightened
+     foreground-brand instead (5.52:1+). */
+  --focus-ring: var(--purple-200);
+  --radius-number: 6px;
+  --radius-primary: 16px;
+  --radius-secondary: 8px;
+  --radius-tertiary: 20px;
+  --radius-quaternary: 4px;
+
+  /* effect styles */
+  --shadow-card: 0 2px 8px 0 rgba(0, 0, 0, 0.06);
+  /* Default glass state now has a real outer shadow (purple-tinted, reusing
+     the existing brand hue — not a new color), not just inset highlights.
+     Cards previously had zero elevation until hovered, which is the main
+     reason the whole UI read as flat/pale. Hover intensifies it further. */
+  --shadow-glass-default: 0 4px 20px 0 rgba(101, 49, 247, 0.14), 0 1px 2px 0 rgba(0, 0, 0, 0.04),
+    inset 0 0 1px 1px rgba(255, 255, 255, 0.5), inset 2px 2px 3px 0 rgba(255, 255, 255, 0.9);
+  --shadow-glass-hover: 0 8px 28px 0 rgba(101, 49, 247, 0.2), 0 2px 6px 0 rgba(0, 0, 0, 0.06),
+    inset 0 0 1px 1px rgba(255, 255, 255, 0.5), inset 2px 2px 3px 0 rgba(255, 255, 255, 0.9);
+  --shadow-light-default: 0 0 4px 0 rgba(101, 49, 247, 0.44), 0 0 8px 0 rgba(101, 49, 247, 0.44);
+  --shadow-light-hover: 0 0 20px 0 rgba(101, 49, 247, 0.44), inset 0 0 4px 0 rgba(255, 255, 255, 0.44),
+    0 3px 6px 0 rgba(101, 49, 247, 0.44);
+
+  /* Two additions for this pass: an elevated variant for anything that
+     should visually sit above a normal glass-surface card (modal/dialog
+     panels specifically — see .glass-surface--elevated below), and a
+     structural shadow for the sidebar/topbar shell, which is deliberately
+     NOT a .glass-surface card and previously had zero elevation of its own
+     (just a border) despite the brief asking it to "feel structurally
+     separated from content." Both reuse the same brand-purple hue already
+     used everywhere else in this file rather than introducing a new color. */
+  --shadow-glass-elevated: 0 16px 48px 0 rgba(101, 49, 247, 0.22), 0 4px 14px 0 rgba(0, 0, 0, 0.08),
+    inset 0 0 1px 1px rgba(255, 255, 255, 0.6), inset 2px 2px 4px 0 rgba(255, 255, 255, 0.95);
+  --shadow-structural: 0 4px 24px -6px rgba(15, 23, 42, 0.12);
+
+  /* RevenueChart series colors — theme-aware, not the same raw hex in both
+     themes: the theme-polish audit found the obvious choice (raw
+     system-green / cyan-200 bars) measures only ~1.6-1.9:1 against this
+     theme's light, pale chart-card background — bars would look washed
+     out. Reusing already-verified darker tokens instead (each clears
+     >=4.5:1 here); dark mode's version of this same set, further down,
+     reuses the raw bright hues instead, which is what actually needs
+     fixing there (see that block's comment). */
+  --chart-created: var(--foreground-success);
+  --chart-completed: var(--cyan-300);
+  --chart-total: var(--purple-200);
+
+  /* ProjectStatusChart donut segment colors — reuses the same per-status
+     hues already established elsewhere in the app (Badge.tsx's
+     in_progress/completed/overdue tints, StatCardsRow's In Progress/
+     Completed/Overdue chip colors) so a status means the same color
+     everywhere, rather than introducing a second, competing palette.
+     "To Do" has no existing color anywhere (its Badge is neutral gray),
+     so a new neutral slate primitive is added here specifically for the
+     donut, where four segments all need to read as visually distinct —
+     plain gray reads as "not started yet" without borrowing the
+     yellow/orange already reserved for --foreground-attention. */
+  --slate-400: #94a3b8;
+  --status-todo: var(--slate-400);
+  --status-in-progress: var(--foreground-cyan);
+  --status-completed: var(--foreground-success);
+  --status-overdue: var(--foreground-danger);
+}
+
+[data-theme='dark'] {
+  /* REFERENCE RESKIN (visual pass, see README): the deepening logic below
+     is the same discipline as before — computed and verified against the
+     actual composited card surface, not guessed — but the target changed.
+     The supplied reference is a near-black canvas with several large, soft
+     purple/cyan glow "orbs" rather than the previous single subtle plum
+     radial. Base is darkened further (near-black, not near-navy) so the
+     glow patches read as light sources against it, matching the reference,
+     while every foreground/border/shadow token below was re-verified
+     against this new base the same way Phase 9 verified the old one. */
+  --background-canvas: radial-gradient(46% 38% at 14% 10%, rgba(139, 92, 246, 0.5) 0%, rgba(139, 92, 246, 0) 70%),
+    radial-gradient(50% 40% at 88% 6%, rgba(34, 211, 238, 0.32) 0%, rgba(34, 211, 238, 0) 70%),
+    radial-gradient(55% 50% at 82% 78%, rgba(124, 58, 237, 0.38) 0%, rgba(124, 58, 237, 0) 70%),
+    radial-gradient(48% 42% at 6% 92%, rgba(56, 189, 248, 0.22) 0%, rgba(56, 189, 248, 0) 70%),
+    radial-gradient(80% 60% at 50% 50%, #0d0b17 0%, #060509 100%);
+  --background-primary: #0a0912;
+  /* Dark-tinted glass, not a white-wash overlay: a translucent near-black
+     surface (rather than translucent white) is what lets the colorful
+     canvas glow show through as a soft haze while keeping body text
+     readable on top of it — a white overlay at readable opacity would
+     just look pale/foggy instead of "glass over a dark scene". Verified
+     >=4.5:1 for foreground-secondary/primary text against this surface
+     composited over the canvas's most saturated point. */
+  --background-secondary: rgba(22, 19, 36, 0.55);
+  --background-tertiary: rgba(22, 19, 36, 0.32);
+  --background-quaternary: rgba(255, 255, 255, 0.1);
+  --background-disabled: rgba(255, 255, 255, 0.14);
+  --background-interactive-primary-default: var(--purple-200);
+  --background-interactive-primary-hover: var(--purple-100);
+  --background-interactive-primary-press: var(--purple-100);
+  --background-interactive-secondary-default: rgba(255, 255, 255, 0.08);
+  --background-interactive-secondary-hover: rgba(255, 255, 255, 0.14);
+  --background-tips-informative: rgba(171, 107, 255, 0.12);
+  --background-tips-danger: rgba(255, 59, 48, 0.14);
+
+  --foreground-primary: #ffffff;
+  --foreground-secondary: rgba(255, 255, 255, 0.64);
+  --foreground-tertiary: rgba(255, 255, 255, 0.4);
+  --foreground-quaternary: rgba(255, 255, 255, 0.22);
+  --foreground-interactive-default: rgba(255, 255, 255, 0.6);
+  --foreground-interactive-hover: #ffffff;
+  --foreground-inverse-primary: #0b0a14;
+
+  /* dark surfaces: the *raw* system hues already clear AA against the dark
+     card (verified 5.17:1 / 8.26:1), unlike light mode — no darkening needed
+     here, only in light. Solid-fill tokens stay identical across themes
+     since they're a fixed colored surface either way (see index.css light
+     block for why, and see Button.tsx's comment on white button text). */
+  --foreground-danger: #ff5e55; /* NOT the raw system-red — re-verified in Phase 9 against the actual
+    composited dark card surface, where raw red only reaches 3.94:1. This lightened shade (18% white
+    blended in) clears 4.65:1 there, 6.10:1 on plain background-primary, 5.44:1 on its own tint chip. */
+  --foreground-success: var(--system-green); /* raw green still passes fine here: 6.30:1 on the real
+    composited card surface — no change needed */
+  --foreground-attention: var(--system-orange); /* raw orange passes fine here: 5.87:1 on the dark
+    quaternary chip — only light mode needed darkening */
+  --foreground-brand: #a07ffa; /* raw purple-200 fails as text on dark surfaces (2.91:1 on the card,
+    2.22:1 on the quaternary chip) — this lightened shade clears 6.04:1 / 4.59:1 respectively, and
+    4.60:1 on the Phase 9 deepened canvas card surface */
+  --focus-ring: var(--foreground-brand); /* same fix as the light block's comment — raw purple-200
+    only clears 2.67:1 against a typical dark card here; this reuses the already-lightened
+    foreground-brand (5.52:1+) */
+  --background-danger-solid: #c72e25;
+  --background-success-solid: #217f39;
+  --background-danger-tint: rgba(255, 59, 48, 0.12); /* 16% measured 4.41:1 with raw-red text — just
+    under AA; 12% clears 4.61:1 (see Phase 2 report) */
+  --background-success-tint: rgba(52, 199, 89, 0.18);
+  /* Same icon-chip tokens as the light block (see there for the light-mode
+     failure this fixes) — dark mode doesn't have that problem: the raw
+     bright hues already clear the 3:1 icon threshold against a dark chip
+     (~3.96:1 blue, ~7.12:1 cyan), so no darkening needed here. */
+  --background-info-tint: rgba(59, 130, 246, 0.16);
+  --foreground-info: var(--blue-accent);
+  --background-cyan-tint: rgba(34, 211, 238, 0.16);
+  --foreground-cyan: var(--cyan-200);
+
+  /* Brighter than before so borders visibly "catch the light" per the
+     reference, rather than reading as a barely-there hairline. */
+  --border-bounds: rgba(255, 255, 255, 0.14);
+  --border-glass-primary: rgba(255, 255, 255, 0.32);
+  --border-glass-secondary: rgba(255, 255, 255, 0.16);
+
+  --shadow-card: 0 2px 10px 0 rgba(0, 0, 0, 0.4);
+  /* Glow now carries both brand hues (purple + cyan), not just purple —
+     a two-color outer glow plus a real drop shadow is what makes the glass
+     read as "floating" over the canvas instead of flat with a tint. */
+  --shadow-glass-default: 0 8px 30px 0 rgba(0, 0, 0, 0.5), 0 0 24px 0 rgba(139, 92, 246, 0.12),
+    0 0 40px 0 rgba(34, 211, 238, 0.05), inset 0 0 1px 1px rgba(255, 255, 255, 0.12),
+    inset 2px 2px 3px 0 rgba(255, 255, 255, 0.14);
+  --shadow-glass-hover: 0 14px 40px 0 rgba(0, 0, 0, 0.6), 0 0 32px 0 rgba(139, 92, 246, 0.22),
+    0 0 56px 0 rgba(34, 211, 238, 0.1), inset 0 0 1px 1px rgba(255, 255, 255, 0.16),
+    inset 2px 2px 3px 0 rgba(255, 255, 255, 0.18);
+  --shadow-light-default: 0 0 4px 0 rgba(171, 107, 255, 0.5), 0 0 10px 0 rgba(171, 107, 255, 0.35);
+  --shadow-light-hover: 0 0 24px 0 rgba(171, 107, 255, 0.5), inset 0 0 4px 0 rgba(255, 255, 255, 0.1),
+    0 3px 8px 0 rgba(171, 107, 255, 0.4);
+  /* Two-tone brand glow — used behind the logo mark and the active nav
+     pill, the two spots the reference gives an obvious purple-into-cyan
+     halo rather than a flat single-hue shadow. */
+  --shadow-brand-glow: 0 0 16px 0 rgba(139, 92, 246, 0.45), 0 0 28px 0 rgba(34, 211, 238, 0.25);
+
+  /* Same two additions as the light block above — elevated modal glass +
+     structural shell shadow — re-tuned for the dark canvas: an outer glow
+     needs real darkness/opacity to read here (0.65 vs the light block's
+     0.08), and the elevated variant picks up a touch of this theme's
+     two-tone purple/cyan glow (same hues as --shadow-brand-glow above)
+     rather than the light block's single purple tint, matching how
+     --shadow-glass-hover already goes two-tone in dark mode. */
+  --shadow-glass-elevated: 0 24px 64px 0 rgba(0, 0, 0, 0.65), 0 0 44px 0 rgba(139, 92, 246, 0.3),
+    0 0 72px 0 rgba(34, 211, 238, 0.14), inset 0 0 1px 1px rgba(255, 255, 255, 0.18),
+    inset 2px 2px 4px 0 rgba(255, 255, 255, 0.2);
+  --shadow-structural: 0 4px 28px -4px rgba(0, 0, 0, 0.55);
+
+  /* RevenueChart series colors, dark-mode side of the pair defined in the
+     light block above. Bars are fine with the raw bright hues here
+     (7.56:1 / 9.29:1 against the dark card) — the one that needed fixing
+     in THIS theme is the Total line: raw purple-200 (fine as light-mode
+     bar/line, per the light block) only clears 2.67:1 against a dark
+     card, so this reuses foreground-brand's already-lightened purple
+     instead, same one already verified elsewhere in this file for
+     dark-mode text contrast. */
+  --chart-created: var(--system-green);
+  --chart-completed: var(--cyan-200);
+  --chart-total: var(--foreground-brand);
+
+  /* ProjectStatusChart donut colors, dark-mode side of the pair defined in
+     the light block above — same status->hue mapping, each name resolving
+     to this theme's own already-verified token (foreground-cyan/-success/
+     -danger), so colors stay internally consistent within a theme and
+     meaningful across both. */
+  --slate-400: #94a3b8;
+  --status-todo: var(--slate-400);
+  --status-in-progress: var(--foreground-cyan);
+  --status-completed: var(--foreground-success);
+  --status-overdue: var(--foreground-danger);
+}
+
+* {
+  border-color: var(--border-bounds);
+}
+
+html {
+  color-scheme: light;
+}
+html[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--background-canvas);
+  background-attachment: fixed;
+  color: var(--foreground-primary);
+  /* Inter, not Roboto — see tailwind.config.ts's fontFamily.sans comment for
+     the full reasoning. Same fallback stack as there, spelled out in plain
+     CSS since this property isn't driven by a Tailwind class. */
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'Roboto', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Keep the Landing content in a stable foreground stacking context while
+   translucent cards composite against the theme canvas behind them. */
+.landing-page {
+  isolation: isolate;
+  background: var(--background-canvas);
+  background-attachment: fixed;
+}
+
+@media (max-width: 639px) {
+  .landing-page {
+    background-attachment: scroll;
+  }
+}
+
+@media (max-width: 639px) {
+  body {
+    background-attachment: scroll;
+  }
+}
+
+/* Every input/select/dropdown that isn't a full .glass-surface card still
+   uses Tailwind's `backdrop-blur-glass` utility (blur only, no saturate) —
+   this override brings them up to the same "obviously glassy" bar as
+   .glass-surface, so glass reads consistently across the whole app (search
+   field, form inputs, the status <select>, ThemeToggle) instead of only on
+   cards. Targets the Tailwind-generated class directly so no component file
+   needs to change. */
+.backdrop-blur-glass {
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+}
+
+/* Glassmorphism card primitive: translucent surface + backdrop blur +
+   soft glass border + layered inner-shadow "glass" effect style. */
+.glass-surface {
+  background: var(--background-secondary);
+  /* Saturate boost alongside the blur is what makes frosted glass look
+     "obvious" (light bending through colored glass) rather than just soft —
+     without it, blurring a translucent gray reads as flat, not glassy. */
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  border: 1px solid var(--border-glass-secondary);
+  border-radius: var(--radius-primary);
+  box-shadow: var(--shadow-glass-default);
+  transition: box-shadow 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+.glass-surface--interactive:hover,
+.glass-surface--interactive:focus-visible {
+  box-shadow: var(--shadow-glass-hover);
+  border-color: var(--border-glass-primary);
+  /* Small lift, not scale: scaling a card with real content (text, charts)
+     inside it re-flows/blurs that content at fractional pixel sizes during
+     the transition; a translateY reads as "the same card, closer to you"
+     without touching internal layout. transform is already in
+     .glass-surface's transition list above — this is the first rule that
+     actually sets a value for it. */
+  transform: translateY(-2px);
+}
+
+/* Elevated glass surface — modal/dialog panels specifically, so they read
+   as sitting above the regular glass-surface cards behind their scrim
+   rather than at the same visual depth. Same base (background, border-
+   radius, transition) as .glass-surface — only blur/saturate, border
+   brightness, and shadow depth increase. */
+.glass-surface--elevated {
+  backdrop-filter: blur(28px) saturate(170%);
+  -webkit-backdrop-filter: blur(28px) saturate(170%);
+  border-color: var(--border-glass-primary);
+  box-shadow: var(--shadow-glass-elevated);
+}
+
+/* Temporary target highlight (Task 4): applied briefly to a dashboard
+   section wrapper right after in-page navigation scrolls it into view —
+   see utils/scrollToSection.ts, which toggles `.section-highlight` on and
+   off a few seconds later. The transition lives on the always-present base
+   class, not only the modifier, so the glow fades OUT smoothly when it's
+   removed, not just in. Ring + glow reuse the same tokens the rest of the
+   app already uses for hover/active glass emphasis (border-glass-primary,
+   shadow-light-hover) — both defined in light AND dark mode, unlike
+   shadow-brand-glow (dark-only) — instead of introducing a new highlight
+   color. The prefers-reduced-motion block below already collapses this
+   transition to near-instant for that group. */
+.dashboard-section {
+  border-radius: var(--radius-primary);
+  transition: box-shadow 400ms ease;
+}
+.dashboard-section.section-highlight {
+  box-shadow: 0 0 0 2px var(--border-glass-primary), var(--shadow-light-hover);
+}
+
+/* Consistent, visible focus ring across the app for keyboard navigation. */
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--radius-quaternary);
+}
+
+::selection {
+  /* purple-150, not purple-100: same reasoning as gradient-brand-mono above
+     — purple-100 only clears 3.34:1 with white text (below 4.5:1 AA). */
+  background: var(--purple-150);
+  color: #fff;
+}
+
+/* Slim, theme-aware scrollbars for the main content area. */
+.scroll-area {
+  scrollbar-width: thin;
+  scrollbar-color: var(--foreground-tertiary) transparent;
+}
+.scroll-area::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.scroll-area::-webkit-scrollbar-thumb {
+  background: var(--foreground-tertiary);
+  border-radius: 999px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
