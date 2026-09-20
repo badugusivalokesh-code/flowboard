@@ -107,7 +107,6 @@ export function Sidebar({ onNavigate, collapsed = false }: SidebarProps) {
       // Scroll immediately even when the URL already has this hash. A hash-only
       // navigate is a no-op in that case, which made the first click appear
       // broken when the dashboard observer had already written the same hash.
-      observerHashUpdateRef.current = true;
       scrollToSection(id);
       navigate({ pathname: location.pathname, hash: `#${id}` });
     } else {
